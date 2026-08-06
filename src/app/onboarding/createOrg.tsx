@@ -62,7 +62,7 @@ export default function CreateOrg() {
 
   return (
     <div>
-      <Card className="[--card-spacing:--spacing(6)]">
+      <Card className="[--card-spacing:--spacing(6)] ">
         <CardHeader>
           <CardAction>
             <OrigamiIcon />

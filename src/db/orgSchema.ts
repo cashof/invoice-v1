@@ -8,9 +8,17 @@ import {
   boolean,
   index,
   uuid,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm/_relations";
 
+const invoiceStatusenum = pgEnum("statusEnum", [
+  "pending",
+  "cancled",
+  "draft",
+  "sent",
+  "paid",
+]);
 // =========================
 // Organization
 // =========================
@@ -121,7 +129,7 @@ export const invoices = pgTable(
       .references(() => clients.id)
       .notNull(),
     invoiceNumber: text("invoice_number").notNull(),
-    status: text("status").default("pending").notNull(),
+    status: invoiceStatusenum("status").default("pending").notNull(),
     issueDate: timestamp("issue_date").notNull(),
     dueDate: timestamp("due_date").notNull(),
     subtotal: numeric("subtotal", {
@@ -138,6 +146,7 @@ export const invoices = pgTable(
     }).notNull(),
     notes: text("notes"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("update_at").defaultNow().notNull(),
   },
   (table) => ({
     organizationIdx: index("invoice_org_idx").on(table.organizationId),

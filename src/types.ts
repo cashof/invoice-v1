@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod"; // ← remove `string` import
 
 export const userDataSchema = z.object({
   name: z
@@ -43,5 +43,37 @@ export const orgSchema = z.object({
     .or(z.literal("")),
 });
 
+export const invoiceItemSchema = z.object({
+  productId: z.string().min(1, "Product ID is required."),
+  quantity: z.coerce
+    .number({ error: "Quantity must be a number." })
+    .int("Quantity must be an integer.")
+    .min(1, "Quantity must be at least 1.")
+    .default(1),
+  unitPrice: z.coerce
+    .number({ error: "Unit price must be a number." })
+    .min(0, "Unit price cannot be negative."),
+  total: z.coerce
+    .number({ error: "Total must be a number." })
+    .min(0, "Total cannot be negative."),
+});
+
+export const invoiceSchema = z.object({
+  clientId: z.string().min(1, "Please select a client."), // ← add this
+  invoiceNumber: z.string().min(1, "Invoice number is required."),
+  status: z.enum(["pending", "canceled", "draft", "paid", "sent"]),
+  issueDate: z.string().min(1, "Issue date is required."),
+  dueDate: z.string().min(1, "Due date is required."),
+  subtotal: z.coerce.number().min(0),
+  tax: z.coerce.number().min(0),
+  total: z.coerce.number().min(0),
+  notes: z.string().optional(),
+  invoiceItems: z
+    .array(invoiceItemSchema)
+    .min(1, "At least one item is required."),
+});
+
+export type InvoiceItemType = z.infer<typeof invoiceItemSchema>;
+export type invoiceType = z.infer<typeof invoiceSchema>;
 export type orgType = z.infer<typeof orgSchema>;
 export type userType = z.infer<typeof userDataSchema>;

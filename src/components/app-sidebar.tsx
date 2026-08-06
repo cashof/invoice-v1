@@ -42,22 +42,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       },
       {
         title: "invoice",
-        url: "/org/invoice",
+        url: "/invoice",
         icon: <FileText />,
       },
       {
         title: "clients",
-        url: "/org/clients",
+        url: "/clients",
         icon: <Users />,
       },
       {
         title: "employee",
-        url: "/org/employee",
+        url: "/employee",
         icon: <UserCog />,
       },
       {
         title: "settings",
-        url: "/org/settings",
+        url: "/settings",
         icon: <Settings />,
       },
     ],
