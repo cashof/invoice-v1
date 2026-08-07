@@ -508,7 +508,7 @@ export default function CreateInvoice() {
                 onClick={() =>
                   append({ productId: "", quantity: 1, unitPrice: 0, total: 0 })
                 }
-                disabled={isPending}
+                disabled={fields.length > 9}
               >
                 <Plus className="h-4 w-4" /> Add Item
               </Button>
