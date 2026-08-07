@@ -12,13 +12,14 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm/_relations";
 
-const invoiceStatusenum = pgEnum("statusEnum", [
+export const invoiceStatusenum = pgEnum("invoiceStatusenum", [
   "pending",
   "cancled",
   "draft",
   "sent",
   "paid",
 ]);
+
 // =========================
 // Organization
 // =========================
@@ -37,19 +38,18 @@ export const organization = pgTable(
     p_o_box: text("p_o_box"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (table) => ({
-    userIdx: index("organization_user_idx").on(table.userId),
-  }),
+  (table) => [index("organization_user_idx").on(table.userId)],
 );
 
 // =========================
 // Clients
 // =========================
+
 export const clients = pgTable(
   "clients",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    organizationId: uuid("organization_id") // was text — bug
+    organizationId: uuid("organization_id")
       .references(() => organization.id, {
         onDelete: "cascade",
       })
@@ -60,9 +60,7 @@ export const clients = pgTable(
     address: text("address").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (table) => ({
-    organizationIdx: index("client_org_idx").on(table.organizationId),
-  }),
+  (table) => [index("client_org_idx").on(table.organizationId)],
 );
 
 // =========================
@@ -73,7 +71,7 @@ export const employees = pgTable(
   "employees",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    organizationId: uuid("organization_id") // was text — bug
+    organizationId: uuid("organization_id")
       .references(() => organization.id, {
         onDelete: "cascade",
       })
@@ -84,9 +82,7 @@ export const employees = pgTable(
     isActive: boolean("is_active").default(true).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (table) => ({
-    organizationIdx: index("employee_org_idx").on(table.organizationId),
-  }),
+  (table) => [index("employee_org_idx").on(table.organizationId)],
 );
 
 // =========================
@@ -97,7 +93,7 @@ export const products = pgTable(
   "products",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    organizationId: uuid("organization_id") // was text — bug
+    organizationId: uuid("organization_id")
       .references(() => organization.id, {
         onDelete: "cascade",
       })
@@ -106,9 +102,7 @@ export const products = pgTable(
     description: text("description"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (table) => ({
-    organizationIdx: index("product_org_idx").on(table.organizationId),
-  }),
+  (table) => [index("product_org_idx").on(table.organizationId)],
 );
 
 // =========================
@@ -119,13 +113,12 @@ export const invoices = pgTable(
   "invoices",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-
-    organizationId: uuid("organization_id") // was text — bug
+    organizationId: uuid("organization_id")
       .references(() => organization.id, {
         onDelete: "cascade",
       })
       .notNull(),
-    clientId: uuid("client_id") // was text — bug
+    clientId: uuid("client_id")
       .references(() => clients.id)
       .notNull(),
     invoiceNumber: text("invoice_number").notNull(),
@@ -146,12 +139,12 @@ export const invoices = pgTable(
     }).notNull(),
     notes: text("notes"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("update_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (table) => ({
-    organizationIdx: index("invoice_org_idx").on(table.organizationId),
-    clientIdx: index("invoice_client_idx").on(table.clientId),
-  }),
+  (table) => [
+    index("invoice_org_idx").on(table.organizationId),
+    index("invoice_client_idx").on(table.clientId),
+  ],
 );
 
 // =========================
@@ -162,33 +155,28 @@ export const invoiceItems = pgTable(
   "invoice_items",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-
-    invoiceId: uuid("invoice_id") // was text — bug
+    invoiceId: uuid("invoice_id")
       .references(() => invoices.id, {
         onDelete: "cascade",
       })
       .notNull(),
-
-    productId: uuid("product_id") // was text — bug
+    productId: uuid("product_id")
       .references(() => products.id)
       .notNull(),
-
     quantity: integer("quantity").notNull(),
-
     unitPrice: numeric("unit_price", {
       precision: 10,
       scale: 2,
     }).notNull(),
-
     total: numeric("total", {
       precision: 10,
       scale: 2,
     }).notNull(),
   },
-  (table) => ({
-    invoiceIdx: index("invoice_item_invoice_idx").on(table.invoiceId),
-    productIdx: index("invoice_item_product_idx").on(table.productId),
-  }),
+  (table) => [
+    index("invoice_item_invoice_idx").on(table.invoiceId),
+    index("invoice_item_product_idx").on(table.productId),
+  ],
 );
 
 // =========================
@@ -202,19 +190,18 @@ export const organizationRelations = relations(
       fields: [organization.userId],
       references: [user.id],
     }),
-
     clients: many(clients),
     employees: many(employees),
     products: many(products),
     invoices: many(invoices),
   }),
 );
+
 export const clientRelations = relations(clients, ({ one, many }) => ({
   organization: one(organization, {
     fields: [clients.organizationId],
     references: [organization.id],
   }),
-
   invoices: many(invoices),
 }));
 
@@ -230,7 +217,6 @@ export const productRelations = relations(products, ({ one, many }) => ({
     fields: [products.organizationId],
     references: [organization.id],
   }),
-
   invoiceItems: many(invoiceItems),
 }));
 
@@ -239,12 +225,10 @@ export const invoiceRelations = relations(invoices, ({ one, many }) => ({
     fields: [invoices.organizationId],
     references: [organization.id],
   }),
-
   client: one(clients, {
     fields: [invoices.clientId],
     references: [clients.id],
   }),
-
   items: many(invoiceItems),
 }));
 
@@ -253,7 +237,6 @@ export const invoiceItemRelations = relations(invoiceItems, ({ one }) => ({
     fields: [invoiceItems.invoiceId],
     references: [invoices.id],
   }),
-
   product: one(products, {
     fields: [invoiceItems.productId],
     references: [products.id],

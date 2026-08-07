@@ -1,10 +1,10 @@
-import React from 'react'
-import Createclient from '../createclient'
+import React from "react";
+import Createclient from "../createclient";
 
 export default function page() {
   return (
     <div>
-      <Createclient/>
+      <Createclient />
     </div>
-  ) 
+  );
 }

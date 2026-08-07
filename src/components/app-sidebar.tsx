@@ -19,6 +19,7 @@ import {
   UserCog,
   Users,
   FileText,
+  Boxes,
 } from "lucide-react";
 
 import { headers } from "next/headers";
@@ -54,6 +55,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: "employee",
         url: "/employee",
         icon: <UserCog />,
+      },
+      {
+        title: "products",
+        url: "/products",
+        icon: <Boxes />,
       },
       {
         title: "settings",

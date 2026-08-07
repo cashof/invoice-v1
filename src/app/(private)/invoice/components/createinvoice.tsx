@@ -1,9 +1,15 @@
 "use client";
 
-import { invoiceSchema, invoiceType } from "@/types";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { useTransition, useEffect, useState } from "react";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import { Plus, Trash2, FileText, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+
+import { invoiceSchema, invoiceType } from "@/types";
+import { createInvoice, getClients, getProducts } from "@/actions/invoice";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,6 +21,7 @@ import {
 } from "@/components/ui/card";
 import {
   Field,
+  FieldContent,
   FieldDescription,
   FieldError,
   FieldLabel,
@@ -30,8 +37,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
-import { Plus, Trash2, FileText } from "lucide-react";
-import { createInvoice, getClients, getProducts } from "@/actions/invoice";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 
 type Client = { id: string; name: string; email: string | null };
 type Product = { id: string; name: string; description: string | null };
@@ -77,13 +88,15 @@ export default function CreateInvoice() {
     name: "invoiceItems",
   });
 
-  const watchItems = form.watch("invoiceItems");
-  const watchTax = form.watch("tax");
+  const watchItems = form.watch("invoiceItems") || [];
+  const watchTax = form.watch("tax") || 0;
+
   const subtotal = watchItems.reduce(
-    (sum, item) => sum + (item.quantity || 0) * (item.unitPrice || 0),
+    (sum, item) =>
+      sum + (Number(item?.quantity) || 0) * (Number(item?.unitPrice) || 0),
     0,
   );
-  const total = subtotal + (watchTax || 0);
+  const total = subtotal + Number(watchTax);
 
   // Auto-fill unit price when product is selected
   function handleProductSelect(index: number, productId: string) {
@@ -109,7 +122,7 @@ export default function CreateInvoice() {
   }
 
   return (
-    <div>
+    <div className="grid md:grid-cols-3">
       <Card className="[--card-spacing:--spacing(6)]">
         <CardHeader>
           <FileText className="h-5 w-5 text-muted-foreground" />
@@ -214,46 +227,100 @@ export default function CreateInvoice() {
               />
             </div>
 
-            {/* Issue Date + Due Date */}
+            {/* Dates */}
             <div className="grid grid-cols-2 gap-4">
+              {/* Issue Date */}
               <Controller
                 name="issueDate"
                 control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Issue Date</FieldLabel>
-                    <Input
-                      {...field}
-                      id={field.name}
-                      type="date"
-                      disabled={isPending}
-                      aria-invalid={fieldState.invalid}
-                    />
-                    {fieldState.error && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                render={({ field, fieldState }) => {
+                  const dateValue = field.value
+                    ? new Date(field.value)
+                    : undefined;
+                  return (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>Issue Date</FieldLabel>
+                      <FieldContent>
+                        <Popover>
+                          <PopoverTrigger>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start text-left font-normal"
+                              disabled={isPending}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {dateValue ? (
+                                format(dateValue, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={dateValue}
+                              onSelect={(d) =>
+                                field.onChange(d ? d.toISOString() : "")
+                              }
+                              defaultMonth={dateValue}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </FieldContent>
+                      {fieldState.error && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  );
+                }}
               />
 
+              {/* Due Date */}
               <Controller
                 name="dueDate"
                 control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Due Date</FieldLabel>
-                    <Input
-                      {...field}
-                      id={field.name}
-                      type="date"
-                      disabled={isPending}
-                      aria-invalid={fieldState.invalid}
-                    />
-                    {fieldState.error && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                render={({ field, fieldState }) => {
+                  const dateValue = field.value
+                    ? new Date(field.value)
+                    : undefined;
+                  return (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>Due Date</FieldLabel>
+                      <FieldContent>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start text-left font-normal"
+                              disabled={isPending}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {dateValue ? (
+                                format(dateValue, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={dateValue}
+                              onSelect={(d) =>
+                                field.onChange(d ? d.toISOString() : "")
+                              }
+                              defaultMonth={dateValue}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </FieldContent>
+                      {fieldState.error && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  );
+                }}
               />
             </div>
 
@@ -264,16 +331,16 @@ export default function CreateInvoice() {
               <p className="text-sm font-medium">Invoice Items</p>
 
               <div className="grid grid-cols-12 gap-2 text-xs text-muted-foreground px-1">
-                <span className="col-span-5">Product</span>
+                <span className="col-span-3">Product</span>
                 <span className="col-span-2 text-center">Qty</span>
                 <span className="col-span-3 text-center">Unit Price</span>
-                <span className="col-span-1 text-center">Total</span>
+                <span className="col-span-3 text-center">Total</span>
                 <span className="col-span-1" />
               </div>
 
               {fields.map((f, index) => {
-                const qty = watchItems[index]?.quantity || 0;
-                const price = watchItems[index]?.unitPrice || 0;
+                const qty = Number(watchItems[index]?.quantity) || 0;
+                const price = Number(watchItems[index]?.unitPrice) || 0;
                 const lineTotal = qty * price;
 
                 return (
@@ -282,7 +349,7 @@ export default function CreateInvoice() {
                     className="grid grid-cols-12 gap-2 items-start"
                   >
                     {/* Product Select */}
-                    <div className="col-span-5">
+                    <div className="col-span-3">
                       <Controller
                         name={`invoiceItems.${index}.productId`}
                         control={form.control}
@@ -334,6 +401,9 @@ export default function CreateInvoice() {
                               placeholder="1"
                               className="text-center"
                               disabled={isPending}
+                              onChange={(e) =>
+                                field.onChange(e.target.valueAsNumber || 0)
+                              }
                             />
                             {fieldState.error && (
                               <FieldError errors={[fieldState.error]} />
@@ -358,6 +428,9 @@ export default function CreateInvoice() {
                               placeholder="0.00"
                               className="text-center"
                               disabled={isPending}
+                              onChange={(e) =>
+                                field.onChange(e.target.valueAsNumber || 0)
+                              }
                             />
                             {fieldState.error && (
                               <FieldError errors={[fieldState.error]} />
@@ -368,7 +441,7 @@ export default function CreateInvoice() {
                     </div>
 
                     {/* Line Total */}
-                    <div className="col-span-1 flex items-center justify-center pt-2">
+                    <div className="col-span-3 flex items-center justify-center pt-2">
                       <span className="text-sm text-muted-foreground">
                         ${lineTotal.toFixed(2)}
                       </span>
@@ -376,14 +449,16 @@ export default function CreateInvoice() {
 
                     {/* Remove */}
                     <div className="col-span-1 flex justify-center pt-2">
-                      <button
-                        type="button"
-                        onClick={() => remove(index)}
-                        disabled={fields.length === 1 || isPending}
-                        className="text-muted-foreground hover:text-destructive disabled:opacity-30 transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      {fields.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => remove(index)}
+                          disabled={fields.length === 1 || isPending}
+                          className="text-muted-foreground hover:text-destructive disabled:opacity-30 transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -399,7 +474,7 @@ export default function CreateInvoice() {
                 type="button"
                 variant="outline"
                 size="sm"
-                className="w-full gap-2"
+                className="w-auto gap-2 outline-1 outline-dotted "
                 onClick={() =>
                   append({ productId: "", quantity: 1, unitPrice: 0, total: 0 })
                 }
@@ -431,6 +506,9 @@ export default function CreateInvoice() {
                       step="0.01"
                       className="w-24 text-right h-7 text-sm"
                       disabled={isPending}
+                      onChange={(e) =>
+                        field.onChange(e.target.valueAsNumber || 0)
+                      }
                     />
                   )}
                 />

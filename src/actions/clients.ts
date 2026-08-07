@@ -1,11 +1,12 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { clients, organization } from "@/db/orgSchema";
+
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
+import { clients, organization } from "@/db/orgSchema";
 
 type ClientInput = {
   name: string;
@@ -21,10 +22,17 @@ export async function createClient(data: ClientInput) {
 
   if (!session) redirect("/login");
 
-  const org = await db.query.organization.findFirst({
-    where: eq(organization.userId, session.user.id),
-  });
+  const [org] = await db
+    .select()
+    .from(organization)
+    .where(eq(organization.userId, session.user.id))
+    .limit(1);
 
+  if (!org) {
+    return {
+      error: "No organization found. Please create one first.",
+    };
+  }
   if (!org) return { error: "No organization found. Please create one first." };
 
   try {

@@ -3,10 +3,10 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
-export default function ClientsList() {
+export default function ProductList() {
   return (
     <div>
-      <Link href={"/clients/createclient"}>
+      <Link href={"/products/createproduct"}>
         <Button>
           <Plus /> Add Client
         </Button>
