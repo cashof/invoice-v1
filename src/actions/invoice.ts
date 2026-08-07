@@ -1,30 +1,46 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { invoices, invoiceItems, organization } from "@/db/orgSchema";
+import {
+  invoices,
+  invoiceItems,
+  organization,
+  clients,
+  products,
+} from "@/db/orgSchema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { invoiceType } from "@/types";
 import { eq } from "drizzle-orm";
 
+// ==========================================
+// Create Invoice
+// ==========================================
+
 export async function createInvoice(data: invoiceType) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
-  if (!session) redirect("/login");
-
-  // Get the user's organization
-  const org = await db.query.organization.findFirst({
-    where: eq(organization.userId, session.user.id),
-  });
-
-  if (!org) {
-    return { error: "No organization found. Please create one first." };
+  if (!session) {
+    redirect("/login");
   }
 
   try {
+    // Get the user's organization
+    const [org] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.userId, session.user.id))
+      .limit(1);
+
+    if (!org) {
+      return {
+        error: "No organization found. Please create one first.",
+      };
+    }
+
     // 1. Insert invoice
     const [newInvoice] = await db
       .insert(invoices)
@@ -40,62 +56,125 @@ export async function createInvoice(data: invoiceType) {
         total: String(data.total),
         notes: data.notes ?? null,
       })
-      .returning({ id: invoices.id });
+      .returning({
+        id: invoices.id,
+      });
 
-    // 2. Insert all invoice items
-    await db.insert(invoiceItems).values(
-      data.invoiceItems.map((item) => ({
-        invoiceId: newInvoice.id,
-        productId: item.productId,
-        quantity: item.quantity,
-        unitPrice: String(item.unitPrice),
-        total: String(item.quantity * item.unitPrice),
-      })),
-    );
+    // Make sure invoice was created
+    if (!newInvoice) {
+      return {
+        error: "Failed to create invoice.",
+      };
+    }
 
-    return { success: true, invoiceId: newInvoice.id };
+    // 2. Insert invoice items
+    if (data.invoiceItems?.length) {
+      await db.insert(invoiceItems).values(
+        data.invoiceItems.map((item) => ({
+          invoiceId: newInvoice.id,
+          productId: item.productId,
+          quantity: item.quantity,
+          unitPrice: String(item.unitPrice),
+          total: String(item.quantity * item.unitPrice),
+        })),
+      );
+    }
+
+    return {
+      success: true,
+      invoiceId: newInvoice.id,
+    };
   } catch (err) {
     console.error("Failed to create invoice:", err);
-    return { error: "Something went wrong. Please try again." };
+
+    return {
+      error: "Something went wrong. Please try again.",
+    };
   }
 }
 
-// Fetch clients for the current user's organization
+// ==========================================
+// Get Clients
+// ==========================================
+
 export async function getClients() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
-  if (!session) redirect("/login");
+  if (!session) {
+    redirect("/login");
+  }
 
-  const org = await db.query.organization.findFirst({
-    where: eq(organization.userId, session.user.id),
-  });
+  try {
+    // Get user's organization
+    const [org] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.userId, session.user.id))
+      .limit(1);
 
-  if (!org) return [];
+    if (!org) {
+      return [];
+    }
 
-  return db.query.clients.findMany({
-    where: (clients, { eq }) => eq(clients.organizationId, org.id),
-    columns: { id: true, name: true, email: true },
-  });
+    // Get clients belonging to the organization
+    const result = await db
+      .select({
+        id: clients.id,
+        name: clients.name,
+        email: clients.email,
+      })
+      .from(clients)
+      .where(eq(clients.organizationId, org.id));
+
+    return result;
+  } catch (err) {
+    console.error("Failed to fetch clients:", err);
+
+    return [];
+  }
 }
 
-// Fetch products for the current user's organization
+// ==========================================
+// Get Products
+// ==========================================
+
 export async function getProducts() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
-  if (!session) redirect("/login");
+  if (!session) {
+    redirect("/login");
+  }
 
-  const org = await db.query.organization.findFirst({
-    where: eq(organization.userId, session.user.id),
-  });
+  try {
+    // Get user's organization
+    const [org] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.userId, session.user.id))
+      .limit(1);
 
-  if (!org) return [];
+    if (!org) {
+      return [];
+    }
 
-  return db.query.products.findMany({
-    where: (products, { eq }) => eq(products.organizationId, org.id),
-    columns: { id: true, name: true, description: true },
-  });
+    // Get products belonging to the organization
+    const result = await db
+      .select({
+        id: products.id,
+        name: products.name,
+        description: products.description,
+      })
+      .from(products)
+      .where(eq(products.organizationId, org.id));
+
+    return result;
+  } catch (err) {
+    console.error("Failed to fetch products:", err);
+
+    return [];
+  }
 }

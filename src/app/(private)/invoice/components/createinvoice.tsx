@@ -79,7 +79,14 @@ export default function CreateInvoice() {
       tax: 0,
       total: 0,
       notes: "",
-      invoiceItems: [{ productId: "", quantity: 1, unitPrice: 0, total: 0 }],
+      invoiceItems: [
+        {
+          productId: "",
+          quantity: 1,
+          unitPrice: 0,
+          total: 0,
+        },
+      ],
     },
   });
 
@@ -103,23 +110,46 @@ export default function CreateInvoice() {
     form.setValue(`invoiceItems.${index}.productId`, productId);
   }
 
-  function onSubmit(data: invoiceType) {
+  const onSubmit = async (data: invoiceType) => {
     startTransition(async () => {
-      const result = await createInvoice({
-        ...data,
-        subtotal,
-        total,
-      });
+      try {
+        const result = await createInvoice({
+          ...data,
+          subtotal: Number(subtotal),
+          tax: Number(data.tax ?? 0),
+          total: Number(total),
+          invoiceItems: data.invoiceItems.map((item) => ({
+            ...item,
+            quantity: Number(item.quantity),
+            unitPrice: Number(item.unitPrice),
+            total: Number(item.quantity) * Number(item.unitPrice),
+          })),
+        });
 
-      if (result?.error) {
-        toast.add({ type: "error", description: result.error });
-        return;
+        if (!result?.success) {
+          toast.add({
+            type: "error",
+            description: result?.error ?? "Failed to create invoice.",
+          });
+          return;
+        }
+
+        toast.add({
+          type: "success",
+          description: "Invoice has been created successfully.",
+        });
+
+        form.reset();
+      } catch (error) {
+        console.error(error);
+
+        toast.add({
+          type: "error",
+          description: "Something went wrong.",
+        });
       }
-
-      toast.add({ type: "success", description: "Invoice has been created." });
-      form.reset();
     });
-  }
+  };
 
   return (
     <div className="grid md:grid-cols-3">
@@ -289,7 +319,7 @@ export default function CreateInvoice() {
                       <FieldLabel>Due Date</FieldLabel>
                       <FieldContent>
                         <Popover>
-                          <PopoverTrigger asChild>
+                          <PopoverTrigger>
                             <Button
                               variant="outline"
                               className="w-full justify-start text-left font-normal"

@@ -1,7 +1,6 @@
 "use server";
 
 import { db } from "@/lib/db";
-
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -36,11 +35,20 @@ export async function createProduct(data: ProductInput) {
       };
     }
 
+    // Validate product name
+    const name = data.name.trim();
+
+    if (!name) {
+      return {
+        error: "Product name is required.",
+      };
+    }
+
     // Create the product
     await db.insert(products).values({
       organizationId: org.id,
-      name: data.name,
-      description: data.description || null,
+      name,
+      description: data.description?.trim() || null,
     });
 
     return {
