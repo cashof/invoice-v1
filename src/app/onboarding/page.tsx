@@ -1,14 +1,14 @@
-import React from "react";
+"use server";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import CreateOrg from "./createOrg";
 
-const session = await auth.api.getSession({
-  headers: await headers(), // you need to pass the headers object.
-});
+export default async function page() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-export default function page() {
   if (!session) {
     redirect("/login");
   }
