@@ -61,7 +61,6 @@ export default function CreateInvoice() {
   const [clients, setClients] = useState<Client[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
 
-  // Load clients and products on mount
   useEffect(() => {
     getClients().then(setClients);
     getProducts().then(setProducts);

@@ -45,22 +45,24 @@ export const organizationSchema = z.object({
 
 export const invoiceItemSchema = z.object({
   productId: z.string().min(1, "Product is required"),
-  quantity: z.coerce.number().min(1),
-  unitPrice: z.coerce.number().min(0),
-  total: z.coerce.number().min(0),
+  quantity: z.number().min(1),
+  unitPrice: z.number().min(0),
+  total: z.number().min(0),
 });
 
 export const invoiceSchema = z.object({
-  clientId: z.string().min(1),
-  invoiceNumber: z.string().min(1),
-  status: z.enum(["pending", "cancled", "draft", "paid", "sent"]), // Match DB spelling
-  issueDate: z.string().min(1),
-  dueDate: z.string().min(1),
-  subtotal: z.coerce.number().min(0),
-  tax: z.coerce.number().min(0),
-  total: z.coerce.number().min(0),
+  clientId: z.string().min(1, "Client is required"),
+  invoiceNumber: z.string().min(1, "Invoice number is required"),
+  status: z.enum(["pending", "cancled", "draft", "paid", "sent"]),
+  issueDate: z.string().min(1, "Issue date is required"),
+  dueDate: z.string().min(1, "Due date is required"),
+  subtotal: z.number().min(0),
+  tax: z.number().min(0),
+  total: z.number().min(0),
   notes: z.string().optional(),
-  invoiceItems: z.array(invoiceItemSchema).min(1),
+  invoiceItems: z
+    .array(invoiceItemSchema)
+    .min(1, "At least one item is required"),
 });
 
 export type InvoiceItemType = z.infer<typeof invoiceItemSchema>;
