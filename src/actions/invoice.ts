@@ -58,7 +58,7 @@ export async function createInvoice(data: invoiceType) {
         invoiceNumber: data.invoiceNumber,
         status: data.status as
           | "pending"
-          | "cancled"
+          | "canceled"
           | "draft"
           | "sent"
           | "paid", // ← cast to match DB enum

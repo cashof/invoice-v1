@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { orgSchema, orgType } from "@/types";
+import { organizationSchema, orgType } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { OrigamiIcon } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
@@ -30,7 +30,7 @@ export default function CreateOrg() {
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<orgType>({
-    resolver: zodResolver(orgSchema),
+    resolver: zodResolver(organizationSchema),
     mode: "onTouched",
     defaultValues: {
       name: "",

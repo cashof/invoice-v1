@@ -14,7 +14,7 @@ export const userDataSchema = z.object({
     .email({ message: "Please enter a valid email address." }),
 });
 
-export const orgSchema = z.object({
+export const organizationSchema = z.object({
   name: z
     .string({ error: "Organization name is required." })
     .min(2, { message: "Organization name must be at least 2 characters." })
@@ -45,27 +45,25 @@ export const orgSchema = z.object({
 
 export const invoiceItemSchema = z.object({
   productId: z.string().min(1, "Product is required"),
-  quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
-  unitPrice: z.coerce.number().min(0, "Unit price must be non-negative"),
+  quantity: z.coerce.number().min(1),
+  unitPrice: z.coerce.number().min(0),
   total: z.coerce.number().min(0),
 });
 
 export const invoiceSchema = z.object({
-  invoiceNumber: z.string().min(1, "Invoice number is required."),
-  status: z.enum(["pending", "cancled", "draft", "paid", "sent"]), // Keep as "cancled" to match your DB schema
-  issueDate: z.string().min(1, "Issue date is required."),
-  dueDate: z.string().min(1, "Due date is required."),
+  clientId: z.string().min(1),
+  invoiceNumber: z.string().min(1),
+  status: z.enum(["pending", "cancled", "draft", "paid", "sent"]), // Match DB spelling
+  issueDate: z.string().min(1),
+  dueDate: z.string().min(1),
   subtotal: z.coerce.number().min(0),
   tax: z.coerce.number().min(0),
   total: z.coerce.number().min(0),
   notes: z.string().optional(),
-  clientId: z.string().min(1, "Client is required."),
-  invoiceItems: z
-    .array(invoiceItemSchema)
-    .min(1, "At least one item is required."),
+  invoiceItems: z.array(invoiceItemSchema).min(1),
 });
 
 export type InvoiceItemType = z.infer<typeof invoiceItemSchema>;
 export type invoiceType = z.infer<typeof invoiceSchema>;
-export type orgType = z.infer<typeof orgSchema>;
+export type orgType = z.infer<typeof organizationSchema>;
 export type userType = z.infer<typeof userDataSchema>;
