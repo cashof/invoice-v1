@@ -26,14 +26,15 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-const session = await auth.api.getSession({
-  headers: await headers(), // you need to pass the headers object.
-});
-if (!session) {
-  redirect("/login");
-}
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export async function AppSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
+  const session = await auth.api.getSession({
+    headers: await headers(), // you need to pass the headers object.
+  });
+  if (!session) {
+    redirect("/login");
+  }
   const data = {
     navMain: [
       {
