@@ -43,6 +43,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { z } from "zod";
 
 type Client = { id: string; name: string; email: string | null };
 type Product = { id: string; name: string; description: string | null };
@@ -412,7 +413,7 @@ export default function CreateInvoice() {
                               <Select
                                 value={field.value ?? ""}
                                 onValueChange={(val) =>
-                                  handleProductSelect(index, val)
+                                  handleProductSelect(index, val as any)
                                 }
                                 disabled={isPending}
                               >

@@ -44,29 +44,22 @@ export const orgSchema = z.object({
 });
 
 export const invoiceItemSchema = z.object({
-  productId: z.string().min(1, "Product ID is required."),
-  quantity: z.coerce
-    .number({ error: "Quantity must be a number." })
-    .int("Quantity must be an integer.")
-    .min(1, "Quantity must be at least 1.")
-    .default(1),
-  unitPrice: z.coerce
-    .number({ error: "Unit price must be a number." })
-    .min(0, "Unit price cannot be negative."),
-  total: z.coerce
-    .number({ error: "Total must be a number." })
-    .min(0, "Total cannot be negative."),
+  productId: z.string().min(1, "Product is required"),
+  quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
+  unitPrice: z.coerce.number().min(0, "Unit price must be non-negative"),
+  total: z.coerce.number().min(0),
 });
 
 export const invoiceSchema = z.object({
   invoiceNumber: z.string().min(1, "Invoice number is required."),
-  status: z.enum(["pending", "cancled", "draft", "paid", "sent"]), // ← matches DB enum exactly
-  issueDate: z.string().min(1, "Issue date is required."), // ← string, not z.date()
-  dueDate: z.string().min(1, "Due date is required."), // ← string, not z.date()
+  status: z.enum(["pending", "cancled", "draft", "paid", "sent"]), // Keep as "cancled" to match your DB schema
+  issueDate: z.string().min(1, "Issue date is required."),
+  dueDate: z.string().min(1, "Due date is required."),
   subtotal: z.coerce.number().min(0),
   tax: z.coerce.number().min(0),
   total: z.coerce.number().min(0),
   notes: z.string().optional(),
+  clientId: z.string().min(1, "Client is required."),
   invoiceItems: z
     .array(invoiceItemSchema)
     .min(1, "At least one item is required."),
