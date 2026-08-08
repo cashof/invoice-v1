@@ -45,7 +45,6 @@ export async function createProduct(data: ProductInput) {
       };
     }
 
-    // Create the product
     await db.insert(products).values({
       organizationId: org.id,
       name,
