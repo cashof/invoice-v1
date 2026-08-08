@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
 import { Package } from "lucide-react";
-import { createProduct } from "@/actions/products";
+import { createProduct } from "@/actions/createProduct";
 
 const productSchema = z.object({
   name: z.string().min(2, "Product name must be at least 2 characters."),

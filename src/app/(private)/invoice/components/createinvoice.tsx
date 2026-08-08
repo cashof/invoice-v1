@@ -152,7 +152,7 @@ export default function CreateInvoice() {
   };
 
   return (
-    <div className="grid md:grid-cols-3">
+    <div className="grid md:grid-cols-1 lg:grid-cols-2">
       <Card className="[--card-spacing:--spacing(6)]">
         <CardHeader>
           <FileText className="h-5 w-5 text-muted-foreground" />
