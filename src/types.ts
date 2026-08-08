@@ -59,11 +59,10 @@ export const invoiceItemSchema = z.object({
 });
 
 export const invoiceSchema = z.object({
-  clientId: z.string().min(1, "Please select a client."), // ← add this
   invoiceNumber: z.string().min(1, "Invoice number is required."),
-  status: z.enum(["pending", "canceled", "draft", "paid", "sent"]),
-  issueDate: z.string().min(1, "Issue date is required."),
-  dueDate: z.string().min(1, "Due date is required."),
+  status: z.enum(["pending", "cancled", "draft", "paid", "sent"]), // ← matches DB enum exactly
+  issueDate: z.string().min(1, "Issue date is required."), // ← string, not z.date()
+  dueDate: z.string().min(1, "Due date is required."), // ← string, not z.date()
   subtotal: z.coerce.number().min(0),
   tax: z.coerce.number().min(0),
   total: z.coerce.number().min(0),

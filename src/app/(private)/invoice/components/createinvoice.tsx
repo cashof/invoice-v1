@@ -170,39 +170,59 @@ export default function CreateInvoice() {
             <Controller
               name="clientId"
               control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>Client</FieldLabel>
-                  <Select
-                    value={field.value ?? ""}
-                    onValueChange={field.onChange}
-                    disabled={isPending}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a client" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clients.length === 0 ? (
-                        <SelectItem value="none" disabled>
-                          No clients found
-                        </SelectItem>
-                      ) : (
-                        clients.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name} {c.email ? `— ${c.email}` : ""}
+              render={({ field, fieldState }) => {
+                const selectedClient = clients.find(
+                  (c) => c.id === field.value,
+                );
+                return (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>Client</FieldLabel>
+                    <Select
+                      value={field.value ?? ""}
+                      onValueChange={field.onChange}
+                      disabled={isPending}
+                    >
+                      <SelectTrigger>
+                        {selectedClient ? (
+                          <div className="flex flex-col text-left leading-tight">
+                            <span className="font-medium text-sm">
+                              {selectedClient.name}
+                            </span>
+                          </div>
+                        ) : (
+                          <SelectValue placeholder="Select a client" />
+                        )}
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clients.length === 0 ? (
+                          <SelectItem value="none" disabled>
+                            No clients found
                           </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FieldDescription>
-                    Choose the client for this invoice.
-                  </FieldDescription>
-                  {fieldState.error && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
+                        ) : (
+                          clients.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              <div className="flex flex-col leading-tight">
+                                <span className="font-medium">{c.name}</span>
+                                {c.email && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {c.email}
+                                  </span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FieldDescription>
+                      Choose the client for this invoice.
+                    </FieldDescription>
+                    {fieldState.error && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                );
+              }}
             />
 
             {/* Invoice Number + Status */}
@@ -383,37 +403,64 @@ export default function CreateInvoice() {
                       <Controller
                         name={`invoiceItems.${index}.productId`}
                         control={form.control}
-                        render={({ field, fieldState }) => (
-                          <Field data-invalid={fieldState.invalid}>
-                            <Select
-                              value={field.value ?? ""}
-                              onValueChange={(val) =>
-                                handleProductSelect(index, val)
-                              }
-                              disabled={isPending}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select product" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {products.length === 0 ? (
-                                  <SelectItem value="none" disabled>
-                                    No products found
-                                  </SelectItem>
-                                ) : (
-                                  products.map((p) => (
-                                    <SelectItem key={p.id} value={p.id}>
-                                      {p.name}
+                        render={({ field, fieldState }) => {
+                          const selectedProduct = products.find(
+                            (p) => p.id === field.value,
+                          );
+                          return (
+                            <Field data-invalid={fieldState.invalid}>
+                              <Select
+                                value={field.value ?? ""}
+                                onValueChange={(val) =>
+                                  handleProductSelect(index, val)
+                                }
+                                disabled={isPending}
+                              >
+                                <SelectTrigger>
+                                  {selectedProduct ? (
+                                    <div className="flex flex-col text-left leading-tight">
+                                      <span className="font-medium text-sm">
+                                        {selectedProduct.name}
+                                      </span>
+                                      {selectedProduct.description && (
+                                        <span className="text-xs text-muted-foreground truncate">
+                                          {selectedProduct.description}
+                                        </span>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <SelectValue placeholder="Select product" />
+                                  )}
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {products.length === 0 ? (
+                                    <SelectItem value="none" disabled>
+                                      No products found
                                     </SelectItem>
-                                  ))
-                                )}
-                              </SelectContent>
-                            </Select>
-                            {fieldState.error && (
-                              <FieldError errors={[fieldState.error]} />
-                            )}
-                          </Field>
-                        )}
+                                  ) : (
+                                    products.map((p) => (
+                                      <SelectItem key={p.id} value={p.id}>
+                                        <div className="flex flex-col leading-tight">
+                                          <span className="font-medium">
+                                            {p.name}
+                                          </span>
+                                          {p.description && (
+                                            <span className="text-xs text-muted-foreground truncate">
+                                              {p.description}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </SelectItem>
+                                    ))
+                                  )}
+                                </SelectContent>
+                              </Select>
+                              {fieldState.error && (
+                                <FieldError errors={[fieldState.error]} />
+                              )}
+                            </Field>
+                          );
+                        }}
                       />
                     </div>
 

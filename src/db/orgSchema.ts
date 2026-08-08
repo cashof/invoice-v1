@@ -14,7 +14,7 @@ import { relations } from "drizzle-orm/_relations";
 
 export const invoiceStatusenum = pgEnum("invoiceStatusenum", [
   "pending",
-  "cancled",
+  "canceled",
   "draft",
   "sent",
   "paid",

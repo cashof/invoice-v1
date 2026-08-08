@@ -11,44 +11,57 @@ import {
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { invoiceType } from "@/types";
-import { eq } from "drizzle-orm";
-
-// ==========================================
-// Create Invoice
-// ==========================================
+import { eq, and } from "drizzle-orm";
 
 export async function createInvoice(data: invoiceType) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
-  if (!session) {
-    redirect("/login");
-  }
+  if (!session) redirect("/login");
 
   try {
-    // Get the user's organization
     const [org] = await db
       .select()
       .from(organization)
       .where(eq(organization.userId, session.user.id))
       .limit(1);
 
-    if (!org) {
+    if (!org)
+      return { error: "No organization found. Please create one first." };
+
+    // Check for duplicate invoice number within the same organization
+    const [existing] = await db
+      .select({ id: invoices.id })
+      .from(invoices)
+      .where(
+        and(
+          eq(invoices.invoiceNumber, data.invoiceNumber),
+          eq(invoices.organizationId, org.id),
+        ),
+      )
+      .limit(1);
+
+    if (existing) {
       return {
-        error: "No organization found. Please create one first.",
+        error: `Invoice number "${data.invoiceNumber}" already exists. Please use a different number.`,
       };
     }
 
-    // 1. Insert invoice
     const [newInvoice] = await db
       .insert(invoices)
       .values({
         organizationId: org.id,
         clientId: data.clientId,
         invoiceNumber: data.invoiceNumber,
-        status: data.status,
+        status: data.status as
+          | "pending"
+          | "cancled"
+          | "draft"
+          | "sent"
+          | "paid", // ← cast to match DB enum
         issueDate: new Date(data.issueDate),
         dueDate: new Date(data.dueDate),
         subtotal: String(data.subtotal),
@@ -56,18 +69,10 @@ export async function createInvoice(data: invoiceType) {
         total: String(data.total),
         notes: data.notes ?? null,
       })
-      .returning({
-        id: invoices.id,
-      });
+      .returning({ id: invoices.id });
 
-    // Make sure invoice was created
-    if (!newInvoice) {
-      return {
-        error: "Failed to create invoice.",
-      };
-    }
+    if (!newInvoice) return { error: "Failed to create invoice." };
 
-    // 2. Insert invoice items
     if (data.invoiceItems?.length) {
       await db.insert(invoiceItems).values(
         data.invoiceItems.map((item) => ({
@@ -80,89 +85,51 @@ export async function createInvoice(data: invoiceType) {
       );
     }
 
-    return {
-      success: true,
-      invoiceId: newInvoice.id,
-    };
+    revalidatePath("/invoice"); // ← revalidate the invoice list page
+    return { success: true, invoiceId: newInvoice.id };
   } catch (err) {
     console.error("Failed to create invoice:", err);
-
-    return {
-      error: "Something went wrong. Please try again.",
-    };
+    return { error: "Something went wrong. Please try again." };
   }
 }
 
-// ==========================================
-// Get Clients
-// ==========================================
-
 export async function getClients() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    redirect("/login");
-  }
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) redirect("/login");
 
   try {
-    // Get user's organization
     const [org] = await db
       .select()
       .from(organization)
       .where(eq(organization.userId, session.user.id))
       .limit(1);
 
-    if (!org) {
-      return [];
-    }
+    if (!org) return [];
 
-    // Get clients belonging to the organization
-    const result = await db
-      .select({
-        id: clients.id,
-        name: clients.name,
-        email: clients.email,
-      })
+    return db
+      .select({ id: clients.id, name: clients.name, email: clients.email })
       .from(clients)
       .where(eq(clients.organizationId, org.id));
-
-    return result;
   } catch (err) {
     console.error("Failed to fetch clients:", err);
-
     return [];
   }
 }
 
-// ==========================================
-// Get Products
-// ==========================================
-
 export async function getProducts() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    redirect("/login");
-  }
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) redirect("/login");
 
   try {
-    // Get user's organization
     const [org] = await db
       .select()
       .from(organization)
       .where(eq(organization.userId, session.user.id))
       .limit(1);
 
-    if (!org) {
-      return [];
-    }
+    if (!org) return [];
 
-    // Get products belonging to the organization
-    const result = await db
+    return db
       .select({
         id: products.id,
         name: products.name,
@@ -170,11 +137,8 @@ export async function getProducts() {
       })
       .from(products)
       .where(eq(products.organizationId, org.id));
-
-    return result;
   } catch (err) {
     console.error("Failed to fetch products:", err);
-
     return [];
   }
 }

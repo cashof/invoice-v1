@@ -1,24 +1,24 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldLabel,
-  FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
@@ -38,18 +38,14 @@ const clientSchema = z.object({
 
 type ClientType = z.infer<typeof clientSchema>;
 
-export default function CreateClient() {
+export function CreateClientDialog() {
+  const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<ClientType>({
     resolver: zodResolver(clientSchema),
     mode: "onTouched",
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      address: "",
-    },
+    defaultValues: { name: "", email: "", phone: "", address: "" },
   });
 
   function onSubmit(data: ClientType) {
@@ -61,23 +57,28 @@ export default function CreateClient() {
       }
       toast.add({ type: "success", description: "Client has been created." });
       form.reset();
+      setOpen(false);
     });
   }
 
   return (
-    <Card className="[--card-spacing:--spacing(6)]">
-      <CardHeader>
-        <UserPlus className="h-5 w-5 text-muted-foreground" />
-        <CardTitle>Add Client</CardTitle>
-        <CardDescription>
-          Add a new client to your organization.
-        </CardDescription>
-      </CardHeader>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
+        render={
+          <Button>
+            <UserPlus className="mr-2 h-4 w-4" /> Add Client
+          </Button>
+        }
+      />
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add Client</DialogTitle>
+          <DialogDescription>
+            Add a new client to your organization.
+          </DialogDescription>
+        </DialogHeader>
 
-      <FieldSeparator />
-
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <CardContent className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <Controller
             name="name"
             control={form.control}
@@ -89,7 +90,6 @@ export default function CreateClient() {
                   id={field.name}
                   placeholder="John Doe"
                   disabled={isPending}
-                  aria-invalid={fieldState.invalid}
                 />
                 {fieldState.error && <FieldError errors={[fieldState.error]} />}
               </Field>
@@ -113,7 +113,6 @@ export default function CreateClient() {
                   type="email"
                   placeholder="john@example.com"
                   disabled={isPending}
-                  aria-invalid={fieldState.invalid}
                 />
                 {fieldState.error && <FieldError errors={[fieldState.error]} />}
               </Field>
@@ -133,7 +132,6 @@ export default function CreateClient() {
                     type="tel"
                     placeholder="+256 700 123 456"
                     disabled={isPending}
-                    aria-invalid={fieldState.invalid}
                   />
                   <FieldDescription>Include country code.</FieldDescription>
                   {fieldState.error && (
@@ -154,7 +152,6 @@ export default function CreateClient() {
                     id={field.name}
                     placeholder="Kampala, Uganda"
                     disabled={isPending}
-                    aria-invalid={fieldState.invalid}
                   />
                   {fieldState.error && (
                     <FieldError errors={[fieldState.error]} />
@@ -163,22 +160,25 @@ export default function CreateClient() {
               )}
             />
           </div>
-        </CardContent>
 
-        <CardFooter className="flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => form.reset()}
-            disabled={isPending}
-          >
-            Reset
-          </Button>
-          <Button type="submit" disabled={isPending}>
-            {isPending ? "Saving..." : "Add Client"}
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                form.reset();
+                setOpen(false);
+              }}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Saving..." : "Add Client"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
