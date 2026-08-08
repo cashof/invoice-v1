@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@/lib/auth";
-import { orgSchema, orgType } from "@/types";
+import { organizationSchema, orgType } from "@/types";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { organization } from "@/db/orgSchema";
@@ -13,7 +13,7 @@ type ActionResult = { success: false; error: string };
 export async function createOrganization(
   data: orgType,
 ): Promise<ActionResult | void> {
-  const parsed = orgSchema.safeParse(data);
+  const parsed = organizationSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: "Invalid organization data." };
   }
