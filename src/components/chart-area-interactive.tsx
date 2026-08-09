@@ -68,9 +68,9 @@ import { getDashboardData } from "@/actions/dashboard";
 ========================================================= */
 
 const ROUTES = {
-  clients: "/dashboard/clients",
-  products: "/dashboard/products",
-  invoices: "/dashboard/invoices",
+  clients: "/clients",
+  products: "/products",
+  invoices: "/invoice",
 };
 
 /* =========================================================
