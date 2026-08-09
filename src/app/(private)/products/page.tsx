@@ -4,8 +4,10 @@ import ProductList from "./ProductList";
 
 export default function page() {
   return (
-    <div>
-      <ProductList />
+    <div className="flex min-h-svh w-full  justify-center p-3 md:px-10">
+      <div className="w-full ">
+        <ProductList />
+      </div>
     </div>
   );
 }
