@@ -1,6 +1,8 @@
-"use client"
+"use client";
 
-import { Badge } from "@/components/ui/badge"
+import * as React from "react";
+
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardAction,
@@ -8,104 +10,334 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { TrendingUpIcon, TrendingDownIcon } from "lucide-react"
+} from "@/components/ui/card";
+
+import {
+  TrendingUpIcon,
+  TrendingDownIcon,
+  Users,
+  Receipt,
+  Wallet,
+  Activity,
+} from "lucide-react";
+
+import { getSectionCardsData } from "@/actions/dashboard";
+
+/* =========================================================
+   TYPES
+========================================================= */
+
+type SectionCardsData = Awaited<ReturnType<typeof getSectionCardsData>>;
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function formatUGX(value: number) {
+  return `UGX ${value.toLocaleString("en-UG", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function formatPercentage(value: number) {
+  if (!Number.isFinite(value)) {
+    return "0%";
+  }
+
+  return `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`;
+}
+
+/* =========================================================
+   SKELETON
+========================================================= */
+
+function CardSkeleton() {
+  return (
+    <Card className="@container/card">
+      <CardHeader>
+        <div className="h-4 w-28 animate-pulse rounded bg-muted" />
+
+        <div className="mt-2 h-9 w-36 animate-pulse rounded bg-muted" />
+
+        <CardAction>
+          <div className="h-6 w-16 animate-pulse rounded-full bg-muted" />
+        </CardAction>
+      </CardHeader>
+
+      <CardFooter className="flex-col items-start gap-2">
+        <div className="h-4 w-48 animate-pulse rounded bg-muted" />
+
+        <div className="h-3 w-56 animate-pulse rounded bg-muted" />
+      </CardFooter>
+    </Card>
+  );
+}
+
+/* =========================================================
+   EMPTY / ERROR
+========================================================= */
+
+function CardsError() {
+  return (
+    <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <Card key={index} className="@container/card">
+          <CardHeader>
+            <CardDescription>Dashboard data</CardDescription>
+
+            <CardTitle className="text-xl">—</CardTitle>
+          </CardHeader>
+
+          <CardFooter>
+            <p className="text-sm text-muted-foreground">
+              Unable to load data.
+            </p>
+          </CardFooter>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+/* =========================================================
+   MAIN COMPONENT
+========================================================= */
 
 export function SectionCards() {
+  const [data, setData] = React.useState<SectionCardsData>(null);
+
+  const [loading, setLoading] = React.useState(true);
+
+  const [error, setError] = React.useState(false);
+
+  React.useEffect(() => {
+    let mounted = true;
+
+    async function loadCards() {
+      try {
+        setLoading(true);
+
+        const result = await getSectionCardsData();
+
+        if (mounted) {
+          setData(result);
+        }
+      } catch (error) {
+        console.error("Failed to load dashboard cards:", error);
+
+        if (mounted) {
+          setError(true);
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadCards();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  /* Loading */
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <CardSkeleton key={index} />
+        ))}
+      </div>
+    );
+  }
+
+  /* Error */
+  if (error || !data) {
+    return <CardsError />;
+  }
+
+  const revenueUp = data.revenueGrowth >= 0;
+
+  const customersUp = data.customerGrowth >= 0;
+
+  const invoicesUp = data.invoiceGrowth >= 0;
+
   return (
     <div className="grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
+      {/* =====================================================
+          TOTAL REVENUE
+      ===================================================== */}
+
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Total Revenue</CardDescription>
+          <CardDescription className="flex items-center gap-2">
+            <Wallet className="size-4" />
+            Total Revenue
+          </CardDescription>
+
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            $1,250.00
+            {formatUGX(data.totalRevenue)}
           </CardTitle>
+
           <CardAction>
             <Badge variant="outline">
-              <TrendingUpIcon
-              />
-              +12.5%
+              {revenueUp ? <TrendingUpIcon /> : <TrendingDownIcon />}
+
+              {formatPercentage(data.revenueGrowth)}
             </Badge>
           </CardAction>
         </CardHeader>
+
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Trending up this month{" "}
-            <TrendingUpIcon className="size-4" />
+            {revenueUp
+              ? "Revenue is growing this month"
+              : "Revenue is down this month"}
+
+            {revenueUp ? (
+              <TrendingUpIcon className="size-4" />
+            ) : (
+              <TrendingDownIcon className="size-4" />
+            )}
           </div>
+
           <div className="text-muted-foreground">
-            Visitors for the last 6 months
+            Compared with the previous month
           </div>
         </CardFooter>
       </Card>
+
+      {/* =====================================================
+          NEW CUSTOMERS
+      ===================================================== */}
+
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>New Customers</CardDescription>
+          <CardDescription className="flex items-center gap-2">
+            <Users className="size-4" />
+            New Customers
+          </CardDescription>
+
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            1,234
+            {data.newCustomers.toLocaleString("en-UG")}
           </CardTitle>
+
           <CardAction>
             <Badge variant="outline">
-              <TrendingDownIcon
-              />
-              -20%
+              {customersUp ? <TrendingUpIcon /> : <TrendingDownIcon />}
+
+              {formatPercentage(data.customerGrowth)}
             </Badge>
           </CardAction>
         </CardHeader>
+
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Down 20% this period{" "}
-            <TrendingDownIcon className="size-4" />
+            {customersUp
+              ? "Customer growth is increasing"
+              : "Customer growth has slowed"}
+
+            {customersUp ? (
+              <TrendingUpIcon className="size-4" />
+            ) : (
+              <TrendingDownIcon className="size-4" />
+            )}
           </div>
+
           <div className="text-muted-foreground">
-            Acquisition needs attention
+            {data.totalCustomers.toLocaleString("en-UG")} total customers
           </div>
         </CardFooter>
       </Card>
+
+      {/* =====================================================
+          ACTIVE ACCOUNTS
+      ===================================================== */}
+
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Active Accounts</CardDescription>
+          <CardDescription className="flex items-center gap-2">
+            <Activity className="size-4" />
+            Active Accounts
+          </CardDescription>
+
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            45,678
+            {data.activeAccounts.toLocaleString("en-UG")}
           </CardTitle>
+
           <CardAction>
             <Badge variant="outline">
-              <TrendingUpIcon
-              />
-              +12.5%
+              {data.activeAccountRate >= 0 ? (
+                <TrendingUpIcon />
+              ) : (
+                <TrendingDownIcon />
+              )}
+
+              {formatPercentage(data.activeAccountRate)}
             </Badge>
           </CardAction>
         </CardHeader>
+
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Strong user retention{" "}
-            <TrendingUpIcon className="size-4" />
+            {data.activeAccounts === 0
+              ? "No active customers yet"
+              : `${data.activeAccounts.toLocaleString(
+                  "en-UG",
+                )} active customers`}
           </div>
-          <div className="text-muted-foreground">Engagement exceed targets</div>
+
+          <div className="text-muted-foreground">
+            Customers with invoice activity
+          </div>
         </CardFooter>
       </Card>
+
+      {/* =====================================================
+          INVOICE GROWTH
+      ===================================================== */}
+
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Growth Rate</CardDescription>
+          <CardDescription className="flex items-center gap-2">
+            <Receipt className="size-4" />
+            Invoice Growth
+          </CardDescription>
+
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            4.5%
+            {formatPercentage(data.invoiceGrowth)}
           </CardTitle>
+
           <CardAction>
             <Badge variant="outline">
-              <TrendingUpIcon
-              />
-              +4.5%
+              {invoicesUp ? <TrendingUpIcon /> : <TrendingDownIcon />}
+
+              {formatPercentage(data.invoiceGrowth)}
             </Badge>
           </CardAction>
         </CardHeader>
+
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Steady performance increase{" "}
-            <TrendingUpIcon className="size-4" />
+            {invoicesUp
+              ? "More invoices this month"
+              : "Fewer invoices this month"}
+
+            {invoicesUp ? (
+              <TrendingUpIcon className="size-4" />
+            ) : (
+              <TrendingDownIcon className="size-4" />
+            )}
           </div>
-          <div className="text-muted-foreground">Meets growth projections</div>
+
+          <div className="text-muted-foreground">
+            {data.totalInvoices.toLocaleString("en-UG")} invoices in total
+          </div>
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
