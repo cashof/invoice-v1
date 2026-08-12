@@ -336,15 +336,17 @@ function EmptyInvoices() {
         <EmptyTitle>No invoices yet</EmptyTitle>
 
         <EmptyDescription className="max-w-md">
-          You haven't created any invoices yet. Create your
-          first invoice to start tracking payments, clients,
-          and revenue.
+          You haven't created any invoices yet. Create your first invoice to
+          start tracking payments, clients, and revenue.
         </EmptyDescription>
       </EmptyHeader>
 
       <EmptyContent>
-        <Button >
-          <Link href="/dashboard/invoices/new">
+        <Button>
+          <Link
+            href="/dashboard/invoices/new"
+            className="flex flex-row justify-center items-center"
+          >
             <Plus className="mr-2 h-4 w-4" />
             Create Invoice
           </Link>
@@ -746,36 +748,31 @@ export default function InvoiceList() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight">
-              Invoices
-            </h1>
+            <h1 className="text-2xl font-bold tracking-tight">Invoices</h1>
 
             {loading ? (
               <Skeleton className="h-5 w-16" />
             ) : (
               <span className="text-sm text-muted-foreground">
                 {invoices.length} invoice
-                {invoices.length !== 1
-                  ? "s"
-                  : ""}
+                {invoices.length !== 1 ? "s" : ""}
               </span>
             )}
           </div>
 
-          {!loading &&
-            totalOutstanding > 0 && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                {formatUGX(
-                  totalOutstanding,
-                )}{" "}
-                outstanding
-              </p>
-            )}
+          {!loading && totalOutstanding > 0 && (
+            <p className="mt-1 text-sm text-muted-foreground">
+              {formatUGX(totalOutstanding)} outstanding
+            </p>
+          )}
         </div>
 
-        <Button className={ "flex gap-2"}>
-          <Link href="/dashboard/invoices/new">
-            <Plus size={12}/>
+        <Button>
+          <Link
+            href="/dashboard/invoices/new"
+            className="flex flex-row justify-center items-center"
+          >
+            <Plus size={12} />
             Add Invoice
           </Link>
         </Button>
@@ -806,25 +803,17 @@ export default function InvoiceList() {
               <Input
                 placeholder="Search by invoice #, client name, or email..."
                 value={search}
-                onChange={(e) =>
-                  setSearch(e.target.value)
-                }
+                onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
               />
             </div>
 
             <div className="flex gap-1 overflow-x-auto pb-1 sm:pb-0">
               <Button
-                variant={
-                  statusFilter === "all"
-                    ? "secondary"
-                    : "ghost"
-                }
+                variant={statusFilter === "all" ? "secondary" : "ghost"}
                 size="sm"
                 className="shrink-0"
-                onClick={() =>
-                  setStatusFilter("all")
-                }
+                onClick={() => setStatusFilter("all")}
               >
                 All
               </Button>
@@ -832,16 +821,10 @@ export default function InvoiceList() {
               {STATUS_OPTIONS.map((status) => (
                 <Button
                   key={status}
-                  variant={
-                    statusFilter === status
-                      ? "secondary"
-                      : "ghost"
-                  }
+                  variant={statusFilter === status ? "secondary" : "ghost"}
                   size="sm"
                   className="shrink-0"
-                  onClick={() =>
-                    setStatusFilter(status)
-                  }
+                  onClick={() => setStatusFilter(status)}
                 >
                   {STATUS_LABELS[status]}
                 </Button>
@@ -882,16 +865,13 @@ export default function InvoiceList() {
                         </Link>
 
                         <div className="truncate text-sm text-muted-foreground">
-                          {invoice.clientName ??
-                            "—"}
+                          {invoice.clientName ?? "—"}
                         </div>
                       </div>
 
                       <div className="shrink-0 text-right">
                         <div className="font-semibold">
-                          {formatUGX(
-                            invoice.total,
-                          )}
+                          {formatUGX(invoice.total)}
                         </div>
                       </div>
                     </div>
@@ -900,80 +880,44 @@ export default function InvoiceList() {
                       <span>
                         Issued{" "}
                         {invoice.issueDate
-                          ? format(
-                              new Date(
-                                invoice.issueDate,
-                              ),
-                              "MMM d, yyyy",
-                            )
+                          ? format(new Date(invoice.issueDate), "MMM d, yyyy")
                           : "—"}
                       </span>
 
                       <span>
                         Due{" "}
                         {invoice.dueDate
-                          ? format(
-                              new Date(
-                                invoice.dueDate,
-                              ),
-                              "MMM d, yyyy",
-                            )
+                          ? format(new Date(invoice.dueDate), "MMM d, yyyy")
                           : "—"}
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between">
                       <Select
-                        value={
-                          invoice.status ??
-                          "draft"
-                        }
+                        value={invoice.status ?? "draft"}
                         onValueChange={(value) =>
-                          handleStatusChange(
-                            invoice.id,
-                            value as Status,
-                          )
+                          handleStatusChange(invoice.id, value as Status)
                         }
                         disabled={isPending}
                       >
                         <SelectTrigger className="border-none bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:opacity-50">
                           <SelectValue>
-                            <StatusBadge
-                              status={
-                                invoice.status ??
-                                "draft"
-                              }
-                            />
+                            <StatusBadge status={invoice.status ?? "draft"} />
                           </SelectValue>
                         </SelectTrigger>
 
                         <SelectContent>
-                          {STATUS_OPTIONS.map(
-                            (status) => (
-                              <SelectItem
-                                key={status}
-                                value={status}
-                              >
-                                {
-                                  STATUS_LABELS[
-                                    status
-                                  ]
-                                }
-                              </SelectItem>
-                            ),
-                          )}
+                          {STATUS_OPTIONS.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {STATUS_LABELS[status]}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
 
                       <div className="flex items-center gap-1">
-                        <Link
-                          href={`/invoice/${invoice.id}`}
-                        >
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            title="View"
-                          >
+                        <Link href={`/invoice/${invoice.id}`}>
+                          <Button variant="ghost" size="sm" title="View">
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
@@ -982,9 +926,7 @@ export default function InvoiceList() {
                           variant="ghost"
                           size="sm"
                           title="Edit"
-                          onClick={() =>
-                            openEdit(invoice)
-                          }
+                          onClick={() => openEdit(invoice)}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -993,19 +935,12 @@ export default function InvoiceList() {
                           variant="ghost"
                           size="sm"
                           title="Download PDF"
-                          disabled={
-                            downloadingId ===
-                            invoice.id
-                          }
+                          disabled={downloadingId === invoice.id}
                           onClick={() =>
-                            handleDownloadPdf(
-                              invoice.id,
-                              invoice.invoiceNumber,
-                            )
+                            handleDownloadPdf(invoice.id, invoice.invoiceNumber)
                           }
                         >
-                          {downloadingId ===
-                          invoice.id ? (
+                          {downloadingId === invoice.id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
                             <Download className="h-4 w-4" />
@@ -1017,11 +952,7 @@ export default function InvoiceList() {
                           size="sm"
                           title="Delete"
                           className="text-destructive hover:text-destructive"
-                          onClick={() =>
-                            setDeleteId(
-                              invoice.id,
-                            )
-                          }
+                          onClick={() => setDeleteId(invoice.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -1039,22 +970,13 @@ export default function InvoiceList() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>
-                        Invoice
-                      </TableHead>
+                      <TableHead>Invoice</TableHead>
 
-                      <TableHead>
-                        Client
-                      </TableHead>
+                      <TableHead>Client</TableHead>
 
                       <TableHead
                         className="cursor-pointer select-none whitespace-nowrap"
-                        onClick={() =>
-                          setSortDesc(
-                            (value) =>
-                              !value,
-                          )
-                        }
+                        onClick={() => setSortDesc((value) => !value)}
                       >
                         <span className="flex items-center gap-1">
                           Issued
@@ -1066,198 +988,127 @@ export default function InvoiceList() {
                         Due
                       </TableHead>
 
-                      <TableHead>
-                        Status
-                      </TableHead>
+                      <TableHead>Status</TableHead>
 
-                      <TableHead className="text-right">
-                        Total
-                      </TableHead>
+                      <TableHead className="text-right">Total</TableHead>
 
-                      <TableHead className="text-right">
-                        Actions
-                      </TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
 
                   <TableBody>
-                    {filtered.map(
-                      (invoice) => (
-                        <TableRow
-                          key={invoice.id}
-                        >
-                          <TableCell className="whitespace-nowrap font-medium">
-                            <Link
-                              href={`/invoice/${invoice.id}`}
-                              className="hover:underline"
-                            >
-                              {
-                                invoice.invoiceNumber
-                              }
+                    {filtered.map((invoice) => (
+                      <TableRow key={invoice.id}>
+                        <TableCell className="whitespace-nowrap font-medium">
+                          <Link
+                            href={`/invoice/${invoice.id}`}
+                            className="hover:underline"
+                          >
+                            {invoice.invoiceNumber}
+                          </Link>
+                        </TableCell>
+
+                        <TableCell className="max-w-[180px]">
+                          <div className="truncate text-sm">
+                            {invoice.clientName ?? "—"}
+                          </div>
+
+                          <div className="truncate text-xs text-muted-foreground">
+                            {invoice.clientEmail ?? invoice.clientPhone ?? ""}
+                          </div>
+                        </TableCell>
+
+                        <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                          {invoice.issueDate
+                            ? format(new Date(invoice.issueDate), "MMM d, yyyy")
+                            : "—"}
+                        </TableCell>
+
+                        <TableCell className="hidden whitespace-nowrap text-sm text-muted-foreground lg:table-cell">
+                          {invoice.dueDate
+                            ? format(new Date(invoice.dueDate), "MMM d, yyyy")
+                            : "—"}
+                        </TableCell>
+
+                        <TableCell>
+                          <Select
+                            value={invoice.status ?? "draft"}
+                            onValueChange={(value) =>
+                              handleStatusChange(invoice.id, value as Status)
+                            }
+                            disabled={isPending}
+                          >
+                            <SelectTrigger className="h-7 w-[110px] border-none bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:opacity-50">
+                              <SelectValue>
+                                <StatusBadge
+                                  status={invoice.status ?? "draft"}
+                                />
+                              </SelectValue>
+                            </SelectTrigger>
+
+                            <SelectContent>
+                              {STATUS_OPTIONS.map((status) => (
+                                <SelectItem key={status} value={status}>
+                                  {STATUS_LABELS[status]}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+
+                        <TableCell className="whitespace-nowrap text-right font-medium">
+                          {formatUGX(invoice.total)}
+                        </TableCell>
+
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Link href={`/invoice/${invoice.id}`}>
+                              <Button variant="ghost" size="sm" title="View">
+                                <Eye className="h-4 w-4" />
+                              </Button>
                             </Link>
-                          </TableCell>
 
-                          <TableCell className="max-w-[180px]">
-                            <div className="truncate text-sm">
-                              {
-                                invoice.clientName ??
-                                "—"
-                              }
-                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title="Edit"
+                              onClick={() => openEdit(invoice)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
 
-                            <div className="truncate text-xs text-muted-foreground">
-                              {invoice.clientEmail ??
-                                invoice.clientPhone ??
-                                ""}
-                            </div>
-                          </TableCell>
-
-                          <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
-                            {invoice.issueDate
-                              ? format(
-                                  new Date(
-                                    invoice.issueDate,
-                                  ),
-                                  "MMM d, yyyy",
-                                )
-                              : "—"}
-                          </TableCell>
-
-                          <TableCell className="hidden whitespace-nowrap text-sm text-muted-foreground lg:table-cell">
-                            {invoice.dueDate
-                              ? format(
-                                  new Date(
-                                    invoice.dueDate,
-                                  ),
-                                  "MMM d, yyyy",
-                                )
-                              : "—"}
-                          </TableCell>
-
-                          <TableCell>
-                            <Select
-                              value={
-                                invoice.status ??
-                                "draft"
-                              }
-                              onValueChange={(
-                                value,
-                              ) =>
-                                handleStatusChange(
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title="Download PDF"
+                              disabled={downloadingId === invoice.id}
+                              onClick={() =>
+                                handleDownloadPdf(
                                   invoice.id,
-                                  value as Status,
+                                  invoice.invoiceNumber,
                                 )
-                              }
-                              disabled={
-                                isPending
                               }
                             >
-                              <SelectTrigger className="h-7 w-[110px] border-none bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:opacity-50">
-                                <SelectValue>
-                                  <StatusBadge
-                                    status={
-                                      invoice.status ??
-                                      "draft"
-                                    }
-                                  />
-                                </SelectValue>
-                              </SelectTrigger>
+                              {downloadingId === invoice.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Download className="h-4 w-4" />
+                              )}
+                            </Button>
 
-                              <SelectContent>
-                                {STATUS_OPTIONS.map(
-                                  (status) => (
-                                    <SelectItem
-                                      key={status}
-                                      value={
-                                        status
-                                      }
-                                    >
-                                      {
-                                        STATUS_LABELS[
-                                          status
-                                        ]
-                                      }
-                                    </SelectItem>
-                                  ),
-                                )}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-
-                          <TableCell className="whitespace-nowrap text-right font-medium">
-                            {formatUGX(
-                              invoice.total,
-                            )}
-                          </TableCell>
-
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <Link
-                                href={`/invoice/${invoice.id}`}
-                              >
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  title="View"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </Link>
-
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                title="Edit"
-                                onClick={() =>
-                                  openEdit(
-                                    invoice,
-                                  )
-                                }
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                title="Download PDF"
-                                disabled={
-                                  downloadingId ===
-                                  invoice.id
-                                }
-                                onClick={() =>
-                                  handleDownloadPdf(
-                                    invoice.id,
-                                    invoice.invoiceNumber,
-                                  )
-                                }
-                              >
-                                {downloadingId ===
-                                invoice.id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <Download className="h-4 w-4" />
-                                )}
-                              </Button>
-
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                title="Delete"
-                                className="text-destructive hover:text-destructive"
-                                onClick={() =>
-                                  setDeleteId(
-                                    invoice.id,
-                                  )
-                                }
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ),
-                    )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title="Delete"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setDeleteId(invoice.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </div>
@@ -1272,28 +1123,20 @@ export default function InvoiceList() {
 
       <Dialog
         open={!!editInvoice}
-        onOpenChange={(open) =>
-          !open &&
-          setEditInvoice(null)
-        }
+        onOpenChange={(open) => !open && setEditInvoice(null)}
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              Edit Invoice
-            </DialogTitle>
+            <DialogTitle>Edit Invoice</DialogTitle>
 
             <DialogDescription>
-              Update the invoice number, dates,
-              or notes. Line items are managed
+              Update the invoice number, dates, or notes. Line items are managed
               from the invoice detail page.
             </DialogDescription>
           </DialogHeader>
 
           <form
-            onSubmit={form.handleSubmit(
-              handleEditSubmit,
-            )}
+            onSubmit={form.handleSubmit(handleEditSubmit)}
             className="space-y-4"
           >
             {/* Invoice Number */}
@@ -1301,30 +1144,14 @@ export default function InvoiceList() {
             <Controller
               name="invoiceNumber"
               control={form.control}
-              render={({
-                field,
-                fieldState,
-              }) => (
-                <Field
-                  data-invalid={
-                    fieldState.invalid
-                  }
-                >
-                  <FieldLabel>
-                    Invoice Number
-                  </FieldLabel>
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Invoice Number</FieldLabel>
 
-                  <Input
-                    {...field}
-                    disabled={isPending}
-                  />
+                  <Input {...field} disabled={isPending} />
 
                   {fieldState.error && (
-                    <FieldError
-                      errors={[
-                        fieldState.error,
-                      ]}
-                    />
+                    <FieldError errors={[fieldState.error]} />
                   )}
                 </Field>
               )}
@@ -1336,31 +1163,14 @@ export default function InvoiceList() {
               <Controller
                 name="issueDate"
                 control={form.control}
-                render={({
-                  field,
-                  fieldState,
-                }) => (
-                  <Field
-                    data-invalid={
-                      fieldState.invalid
-                    }
-                  >
-                    <FieldLabel>
-                      Issue Date
-                    </FieldLabel>
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>Issue Date</FieldLabel>
 
-                    <Input
-                      type="date"
-                      {...field}
-                      disabled={isPending}
-                    />
+                    <Input type="date" {...field} disabled={isPending} />
 
                     {fieldState.error && (
-                      <FieldError
-                        errors={[
-                          fieldState.error,
-                        ]}
-                      />
+                      <FieldError errors={[fieldState.error]} />
                     )}
                   </Field>
                 )}
@@ -1369,31 +1179,14 @@ export default function InvoiceList() {
               <Controller
                 name="dueDate"
                 control={form.control}
-                render={({
-                  field,
-                  fieldState,
-                }) => (
-                  <Field
-                    data-invalid={
-                      fieldState.invalid
-                    }
-                  >
-                    <FieldLabel>
-                      Due Date
-                    </FieldLabel>
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>Due Date</FieldLabel>
 
-                    <Input
-                      type="date"
-                      {...field}
-                      disabled={isPending}
-                    />
+                    <Input type="date" {...field} disabled={isPending} />
 
                     {fieldState.error && (
-                      <FieldError
-                        errors={[
-                          fieldState.error,
-                        ]}
-                      />
+                      <FieldError errors={[fieldState.error]} />
                     )}
                   </Field>
                 )}
@@ -1405,15 +1198,8 @@ export default function InvoiceList() {
             <Controller
               name="notes"
               control={form.control}
-              render={({
-                field,
-                fieldState,
-              }) => (
-                <Field
-                  data-invalid={
-                    fieldState.invalid
-                  }
-                >
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>
                     Notes{" "}
                     <span className="font-normal text-muted-foreground">
@@ -1429,11 +1215,7 @@ export default function InvoiceList() {
                   />
 
                   {fieldState.error && (
-                    <FieldError
-                      errors={[
-                        fieldState.error,
-                      ]}
-                    />
+                    <FieldError errors={[fieldState.error]} />
                   )}
                 </Field>
               )}
@@ -1445,21 +1227,14 @@ export default function InvoiceList() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() =>
-                  setEditInvoice(null)
-                }
+                onClick={() => setEditInvoice(null)}
                 disabled={isPending}
               >
                 Cancel
               </Button>
 
-              <Button
-                type="submit"
-                disabled={isPending}
-              >
-                {isPending
-                  ? "Saving..."
-                  : "Save Changes"}
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Saving..." : "Save Changes"}
               </Button>
             </DialogFooter>
           </form>
@@ -1472,38 +1247,27 @@ export default function InvoiceList() {
 
       <AlertDialog
         open={!!deleteId}
-        onOpenChange={(open) =>
-          !open && setDeleteId(null)
-        }
+        onOpenChange={(open) => !open && setDeleteId(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Delete Invoice
-            </AlertDialogTitle>
+            <AlertDialogTitle>Delete Invoice</AlertDialogTitle>
 
             <AlertDialogDescription>
-              Are you sure you want to delete
-              this invoice? This cannot be
+              Are you sure you want to delete this invoice? This cannot be
               undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
-            <AlertDialogCancel
-              disabled={isPending}
-            >
-              Cancel
-            </AlertDialogCancel>
+            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
 
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isPending
-                ? "Deleting..."
-                : "Delete"}
+              {isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
