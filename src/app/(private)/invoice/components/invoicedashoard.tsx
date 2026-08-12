@@ -344,7 +344,7 @@ function EmptyInvoices() {
       <EmptyContent>
         <Button>
           <Link
-            href="/dashboard/invoices/new"
+            href="/invoice/create"
             className="flex flex-row justify-center items-center"
           >
             <Plus className="mr-2 h-4 w-4" />
@@ -360,11 +360,7 @@ function EmptyInvoices() {
    FILTER EMPTY STATE
 ========================================================= */
 
-function NoInvoiceResults({
-  onClear,
-}: {
-  onClear: () => void;
-}) {
+function NoInvoiceResults({ onClear }: { onClear: () => void }) {
   return (
     <Empty className="rounded-lg border border-dashed py-12">
       <EmptyHeader>
@@ -375,8 +371,7 @@ function NoInvoiceResults({
         <EmptyTitle>No invoices found</EmptyTitle>
 
         <EmptyDescription>
-          No invoices match your current search or status
-          filter.
+          No invoices match your current search or status filter.
         </EmptyDescription>
       </EmptyHeader>
 
@@ -400,17 +395,13 @@ export default function InvoiceList() {
 
   const [search, setSearch] = useState("");
 
-  const [statusFilter, setStatusFilter] =
-    useState<Status | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
 
-  const [editInvoice, setEditInvoice] =
-    useState<Invoice | null>(null);
+  const [editInvoice, setEditInvoice] = useState<Invoice | null>(null);
 
-  const [deleteId, setDeleteId] =
-    useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const [downloadingId, setDownloadingId] =
-    useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const [sortDesc, setSortDesc] = useState(true);
 
@@ -444,16 +435,12 @@ export default function InvoiceList() {
           setInvoices(result);
         }
       } catch (error) {
-        console.error(
-          "Failed to load invoices:",
-          error,
-        );
+        console.error("Failed to load invoices:", error);
 
         if (mounted) {
           toast.add({
             type: "error",
-            description:
-              "Failed to load invoices. Please try again.",
+            description: "Failed to load invoices. Please try again.",
           });
         }
       } finally {
@@ -492,15 +479,12 @@ export default function InvoiceList() {
     if (!editInvoice) return;
 
     startTransition(async () => {
-      const result = await updateInvoice(
-        editInvoice.id,
-        {
-          invoiceNumber: data.invoiceNumber,
-          issueDate: new Date(data.issueDate),
-          dueDate: new Date(data.dueDate),
-          notes: data.notes,
-        },
-      );
+      const result = await updateInvoice(editInvoice.id, {
+        invoiceNumber: data.invoiceNumber,
+        issueDate: new Date(data.issueDate),
+        dueDate: new Date(data.dueDate),
+        notes: data.notes,
+      });
 
       if (result?.error) {
         toast.add({
@@ -516,12 +500,9 @@ export default function InvoiceList() {
           inv.id === editInvoice.id
             ? {
                 ...inv,
-                invoiceNumber:
-                  data.invoiceNumber,
-                issueDate:
-                  new Date(data.issueDate),
-                dueDate:
-                  new Date(data.dueDate),
+                invoiceNumber: data.invoiceNumber,
+                issueDate: new Date(data.issueDate),
+                dueDate: new Date(data.dueDate),
               }
             : inv,
         ),
@@ -540,10 +521,7 @@ export default function InvoiceList() {
      STATUS
   ======================================================= */
 
-  function handleStatusChange(
-    invoiceId: string,
-    status: Status,
-  ) {
+  function handleStatusChange(invoiceId: string, status: Status) {
     const previousInvoices = invoices;
 
     // Optimistic update
@@ -559,10 +537,7 @@ export default function InvoiceList() {
     );
 
     startTransition(async () => {
-      const result = await updateInvoiceStatus(
-        invoiceId,
-        status,
-      );
+      const result = await updateInvoiceStatus(invoiceId, status);
 
       if (result?.error) {
         // Rollback
@@ -602,11 +577,7 @@ export default function InvoiceList() {
         return;
       }
 
-      setInvoices((prev) =>
-        prev.filter(
-          (invoice) => invoice.id !== deleteId,
-        ),
-      );
+      setInvoices((prev) => prev.filter((invoice) => invoice.id !== deleteId));
 
       toast.add({
         type: "success",
@@ -621,38 +592,27 @@ export default function InvoiceList() {
      DOWNLOAD PDF
   ======================================================= */
 
-  async function handleDownloadPdf(
-    invoiceId: string,
-    invoiceNumber: string,
-  ) {
+  async function handleDownloadPdf(invoiceId: string, invoiceNumber: string) {
     setDownloadingId(invoiceId);
 
     try {
-      const full =
-        await getInvoiceWithItems(invoiceId);
+      const full = await getInvoiceWithItems(invoiceId);
 
       if (!full) {
         throw new Error("Invoice not found");
       }
 
-      const {
-        generateInvoicePdfBlob,
-      } = await import("./invoicePdf");
+      const { generateInvoicePdfBlob } = await import("./invoicePdf");
 
-      const blob =
-        await generateInvoicePdfBlob(full);
+      const blob = await generateInvoicePdfBlob(full);
 
-      const url =
-        URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
 
-      const a =
-        document.createElement("a");
+      const a = document.createElement("a");
 
       a.href = url;
 
-      a.download = `Invoice-${
-        invoiceNumber || invoiceId
-      }.pdf`;
+      a.download = `Invoice-${invoiceNumber || invoiceId}.pdf`;
 
       document.body.appendChild(a);
 
@@ -664,8 +624,7 @@ export default function InvoiceList() {
     } catch {
       toast.add({
         type: "error",
-        description:
-          "Couldn't generate the PDF. Try again.",
+        description: "Couldn't generate the PDF. Try again.",
       });
     } finally {
       setDownloadingId(null);
@@ -682,58 +641,31 @@ export default function InvoiceList() {
     const rows = invoices.filter((inv) => {
       const matchesSearch =
         !q ||
-        inv.invoiceNumber
-          ?.toLowerCase()
-          .includes(q) ||
-        inv.clientName
-          ?.toLowerCase()
-          .includes(q) ||
-        inv.clientEmail
-          ?.toLowerCase()
-          .includes(q);
+        inv.invoiceNumber?.toLowerCase().includes(q) ||
+        inv.clientName?.toLowerCase().includes(q) ||
+        inv.clientEmail?.toLowerCase().includes(q);
 
       const matchesStatus =
-        statusFilter === "all" ||
-        inv.status === statusFilter;
+        statusFilter === "all" || inv.status === statusFilter;
 
-      return (
-        matchesSearch &&
-        matchesStatus
-      );
+      return matchesSearch && matchesStatus;
     });
 
     return [...rows].sort((a, b) => {
       const diff =
-        new Date(a.createdAt).getTime() -
-        new Date(b.createdAt).getTime();
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
 
       return sortDesc ? -diff : diff;
     });
-  }, [
-    invoices,
-    search,
-    statusFilter,
-    sortDesc,
-  ]);
+  }, [invoices, search, statusFilter, sortDesc]);
 
   /* =======================================================
      OUTSTANDING
   ======================================================= */
 
   const totalOutstanding = invoices
-    .filter(
-      (inv) =>
-        inv.status === "sent" ||
-        inv.status === "pending",
-    )
-    .reduce(
-      (sum, inv) =>
-        sum +
-        Number.parseFloat(
-          inv.total ?? "0",
-        ),
-      0,
-    );
+    .filter((inv) => inv.status === "sent" || inv.status === "pending")
+    .reduce((sum, inv) => sum + Number.parseFloat(inv.total ?? "0"), 0);
 
   /* =======================================================
      RENDER
@@ -769,7 +701,7 @@ export default function InvoiceList() {
 
         <Button>
           <Link
-            href="/dashboard/invoices/new"
+            href="/invoice/create"
             className="flex flex-row justify-center items-center"
           >
             <Plus size={12} />
