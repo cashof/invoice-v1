@@ -773,10 +773,10 @@ export default function InvoiceList() {
             )}
         </div>
 
-        <Button className={ "flex"}>
+        <Button className={ "flex gap-2"}>
           <Link href="/dashboard/invoices/new">
             <Plus size={12}/>
-            New Invoice
+            Add Invoice
           </Link>
         </Button>
       </div>

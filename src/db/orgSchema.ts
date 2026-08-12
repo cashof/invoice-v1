@@ -12,7 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm/_relations";
 
-export const invoiceStatusenum = pgEnum("invoiceStatusenum", [
+export const invoiceStatusEnum = pgEnum("invoiceStatusEnum", [
   "pending",
   "canceled",
   "draft",
@@ -122,7 +122,7 @@ export const invoices = pgTable(
       .references(() => clients.id)
       .notNull(),
     invoiceNumber: text("invoice_number").notNull(),
-    status: invoiceStatusenum("status").default("pending").notNull(),
+    status: invoiceStatusEnum("status").default("pending").notNull(),
     issueDate: timestamp("issue_date").notNull(),
     dueDate: timestamp("due_date").notNull(),
     subtotal: numeric("subtotal", {
